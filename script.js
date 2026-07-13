@@ -1,84 +1,79 @@
 let startTime = 0;
 let elapsedTime = 0;
-let interval = null;
-let running = false;
+let timerInterval;
 
 const display = document.getElementById("display");
 const laps = document.getElementById("laps");
 
-function updateDisplay() {
+function formatTime(ms){
 
-    let time = elapsedTime;
+let milliseconds = ms % 1000;
 
-    let hours = Math.floor(time / 3600000);
-    time %= 3600000;
+let seconds = Math.floor(ms / 1000) % 60;
 
-    let minutes = Math.floor(time / 60000);
-    time %= 60000;
+let minutes = Math.floor(ms / 60000) % 60;
 
-    let seconds = Math.floor(time / 1000);
+let hours = Math.floor(ms / 3600000);
 
-    let milliseconds = time % 1000;
+return (
+String(hours).padStart(2,"0")+":"+
+String(minutes).padStart(2,"0")+":"+
+String(seconds).padStart(2,"0")+"."+
+String(milliseconds).padStart(3,"0")
+);
 
-    display.textContent =
-        String(hours).padStart(2,'0') + ":" +
-        String(minutes).padStart(2,'0') + ":" +
-        String(seconds).padStart(2,'0') + ":" +
-        String(milliseconds).padStart(3,'0');
 }
 
-document.getElementById("startBtn").addEventListener("click", function(){
+function updateDisplay(){
 
-    if(running) return;
+elapsedTime = Date.now() - startTime;
 
-    running = true;
+display.textContent = formatTime(elapsedTime);
 
-    startTime = Date.now() - elapsedTime;
+}
 
-    interval = setInterval(function(){
+document.getElementById("start").onclick = function(){
 
-        elapsedTime = Date.now() - startTime;
+if(!timerInterval){
 
-        updateDisplay();
+startTime = Date.now() - elapsedTime;
 
-    },10);
+timerInterval = setInterval(updateDisplay,10);
 
-});
+}
 
-document.getElementById("pauseBtn").addEventListener("click", function(){
+};
 
-    if(!running) return;
+document.getElementById("pause").onclick = function(){
 
-    running = false;
+clearInterval(timerInterval);
 
-    clearInterval(interval);
+timerInterval = null;
 
-});
+};
 
-document.getElementById("resetBtn").addEventListener("click", function(){
+document.getElementById("reset").onclick = function(){
 
-    clearInterval(interval);
+clearInterval(timerInterval);
 
-    running = false;
+timerInterval = null;
 
-    elapsedTime = 0;
+elapsedTime = 0;
 
-    updateDisplay();
+display.textContent = "00:00:00.000";
 
-    laps.innerHTML = "";
+laps.innerHTML = "";
 
-});
+};
 
-document.getElementById("lapBtn").addEventListener("click", function(){
+document.getElementById("lap").onclick = function(){
 
-    if(!running) return;
+if(elapsedTime===0) return;
 
-    const li = document.createElement("li");
+const li = document.createElement("li");
 
-    li.textContent = "Lap " + (laps.children.length + 1) + " - " + display.textContent;
+li.textContent = formatTime(elapsedTime);
 
-    laps.prepend(li);
+laps.appendChild(li);
 
-});
-
-updateDisplay();
+};
